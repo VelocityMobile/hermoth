@@ -1,0 +1,33 @@
+{
+  "name": "hermoth",
+  "version": "1.0.0",
+  "description": "A wrapper for the publish/subscribe messaging pattern on top of an AMQP-compatible message broker",
+  "main": "lib/hermoth",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha --compilers js:babel-register",
+    "test:watch": "mocha --compilers js:babel-register -w",
+    "lint": "eslint lib test",
+    "posttest": "npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VelocityMobile/hermoth.git"
+  },
+  "engines": {
+    "node": ">= 6.9.1"
+  },
+  "keywords": [
+    "pub/sub",
+    "tools"
+  ],
+  "author": "https://erb.velocityapp.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/VelocityMobile/hermoth/issues"
+  },
+  "homepage": "https://github.com/VelocityMobile/hermoth#readme"
+}
