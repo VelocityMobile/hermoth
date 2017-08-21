@@ -1,0 +1,12 @@
+# Build artifacts
+node_modules/
+
+# OS specific files
+.DS_Store
+.os
+
+# Editor
+.idea/
+
+# Logging
+*.log*
