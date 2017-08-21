@@ -1,4 +1,4 @@
- #hermoth
+ # hermoth
  
  A wrapper for the publish/subscribe messaging pattern on top of an AMQP-compatible message broker.
  
