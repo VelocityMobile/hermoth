@@ -11,6 +11,8 @@
   
   ## Usage
   
+  The settings can be configured with environment variables
+  
   ```javascript
   import hermoth from 'hermoth';
   ```
