@@ -1,6 +1,8 @@
 machine:
   node:
     version: 6.10.3
+  services:
+      - docker
 
 test:
   override:
