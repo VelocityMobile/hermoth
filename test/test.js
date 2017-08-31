@@ -1,29 +1,39 @@
 /* eslint-env node*/
 
-import assert from 'assert'
-import { map } from 'ramda'
-import sinon from 'sinon'
-import { init, publish, consume, subscribe } from './../lib/hermoth'
+import assert from 'assert';
+import { map } from 'ramda';
+import sinon from 'sinon';
+import Hermoth from '../lib/hermoth';
+let hermoth = new Hermoth('amqp://localhost:5672', 'erb');
+
 
 describe('hermoth', () => {
     describe('connection established', () => {
 
         it('initiates', async () => {
-            let result = await init()
-            assert.ok(result)
+            let doConnectSpy = sinon.spy(hermoth, 'doConnect');
+            let result = await hermoth.init();
+            sinon.assert.called(doConnectSpy);
+            assert.ok(result);
+        });
+
+        it('does connection', async () => {
+            let result = await hermoth.doConnect();
+            assert.ok(result);
         });
 
         it('publishes', async () => {
-            let result = await publish('Test Name', {"Somethin Real": "Minions"})
-            assert.ok(result)
+            let result = await hermoth.publish('join:created', {"availabilities":"changed"});
+            assert.ok(result);
         });
 
-        // it('consumes', async() => {
-        //     subscribe()
-        //     let name = "Test Name"
-        //     let blob = JSON.parse('{"Somethin Real": "Minions"}')
-        //     let result = await consume({content: JSON.stringify({name, blob})})
-        //     assert.ok(result)
-        // });
+        it('consumes and subscribes', () => {
+            let listenerStub = sinon.stub();
+            hermoth.subscribe('join:created', listenerStub);
+            let name = "join:created";
+            let blob = JSON.parse('{"availabilities":"changed"}');
+            hermoth.consume({content: JSON.stringify({name, blob})});
+            sinon.assert.called(listenerStub);
+        });
     });
 });

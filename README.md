@@ -1,4 +1,5 @@
  # hermoth
+ > The deity, who, with Bragi, receives and welcomes to Valhalla all heroes who fall in battle. 
  
  A wrapper for the publish/subscribe messaging pattern on top of an AMQP-compatible message broker.
  
@@ -14,5 +15,8 @@
   The settings can be configured with environment variables
   
   ```javascript
-  import hermoth from 'hermoth';
+  import Hermoth from 'hermoth';
+  const AMQP_ENDPOINT_URL = process.env.AMQP_ENDPOINT_URL;
+  const AMQP_EXCHANGE_NAME = process.env.AMQP_EXCHANGE_NAME;
+  let hermoth = new Hermoth(AMQP_ENDPOINT_URL, AMQP_EXCHANGE_NAME); // retry time defaults to 2 seconds
   ```

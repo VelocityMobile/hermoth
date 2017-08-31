@@ -1,7 +1,7 @@
-rabbitmq:
-  image: rabbitmq:3-management
-  environment:
-   - "RABBITMQ_NODENAME=my-rabbit"
-  ports:
-   - "5672:5672"
-   - "15672:15672"
+version: '2'
+services:
+  erb-rabbitmq-server:
+      container_name: erb-rabbitmq-server
+      image: rabbitmq:alpine
+      ports:
+        - 5672:5672
