@@ -19,10 +19,20 @@ jobs:
             sudo chmod +x /usr/local/bin/docker-compose
 
       - run:
-          name: Start container
+          name: Setup rabbbitmq
           command: |
-            set -x
-            docker-compose up -d
+            ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install)"
+            test -d ~/.linuxbrew && PATH="$HOME/.linuxbrew/bin:$PATH"
+            test -d /home/linuxbrew/.linuxbrew && PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
+            test -r ~/.bash_profile && echo 'export PATH="$(brew --prefix)/bin:$PATH"' >>~/.bash_profile
+            echo 'export PATH="$(brew --prefix)/bin:$PATH"' >>~/.profile
+            brew update
+            brew install rabbitmq
+            PATH=$PATH:/usr/local/sbin
+
+      - run:
+          name: Start rabbitmq
+          command: rabbitmq-server
 
       - run:
           name: Install dependecies
@@ -33,12 +43,6 @@ jobs:
           command: |
             docker ps
             npm test
-
-      - run:
-          name: Stop container
-          command: |
-            set -x
-            docker-compose down
 
   deploy:
     docker:
