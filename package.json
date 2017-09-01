@@ -8,8 +8,9 @@
     "test": "test"
   },
   "scripts": {
-    "pretest": "docker-compose up -d",
-    "posttest": "docker-compose down",
+    "pretest:local": "docker-compose up -d",
+    "posttest:local": "docker-compose down",
+    "test:local": "mocha --compilers js:babel-register --require babel-polyfill --timeout 7000",
     "test": "mocha --compilers js:babel-register --require babel-polyfill --timeout 7000",
     "test:watch": "mocha --compilers js:babel-register --require babel-polyfill -w",
     "lint": "eslint lib test"
