@@ -1,6 +1,8 @@
  # hermoth
  > Norse Messenger God 
  
+ [![CircleCI](https://circleci.com/gh/VelocityMobile/hermoth/tree/master.svg?style=shield)](https://circleci.com/gh/VelocityMobile/hermoth/tree/master)
+ 
  A wrapper for the publish/subscribe messaging pattern on top of an AMQP-compatible message broker.
  
  ## Installation & Testing
