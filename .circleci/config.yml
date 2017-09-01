@@ -12,6 +12,7 @@ jobs:
   build:
     docker:
       - image: circleci/node:8.4.0
+      - image: circleci/rabbitmq:3.6.6
     steps:
       - checkout
 
