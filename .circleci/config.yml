@@ -13,8 +13,6 @@ jobs:
           name: Run tests
           command: npm test
   deploy:
-    machine:
-      enabled: true
     docker:
       - image: circleci/node:8.3.0
     steps:
