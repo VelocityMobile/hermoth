@@ -1,18 +1,19 @@
 version: 2.0
 
+dependencies:
+        pre:
+          - echo 'deb http://www.rabbitmq.com/debian/ testing main' | sudo tee /etc/apt/sources.list.d/rabbitmq.list
+          - wget -O- https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | sudo apt-key add -
+          - sudo apt-get update
+          - sudo apt-get install rabbitmq-server
+          - sudo service rabbitmq-server start
+          
 jobs:
   build:
     docker:
       - image: circleci/node:8.4.0
     steps:
       - checkout
-    dependencies:
-      pre:
-        - echo 'deb http://www.rabbitmq.com/debian/ testing main' | sudo tee /etc/apt/sources.list.d/rabbitmq.list
-        - wget -O- https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | sudo apt-key add -
-        - sudo apt-get update
-        - sudo apt-get install rabbitmq-server
-        - sudo service rabbitmq-server start
 
         # This should go into custom primary image, here's only for the sake of explanation
 #      - setup_remote_docker
