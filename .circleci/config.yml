@@ -1,12 +1,18 @@
-version: 2
+version: 2.0
+
 jobs:
-  test:
+  build:
     docker:
       - image: circleci/node:8.3.0
     steps:
       - checkout
-      - run: npm test
-  build:
+      - run:
+          name: Install dependecies
+          command: npm install
+      - run:
+          name: Run tests
+          command: npm test
+  deploy:
     docker:
       - image: circleci/node:8.3.0
     steps:
@@ -24,12 +30,12 @@ jobs:
 # Publish should only be run once and if tests pass
 workflows:
   version: 2
-  test-and-build:
+  build-and-deploy:
     jobs:
       - test
-      - build:
+      - deploy:
         requires:
-          - test
+          - build
         filters:
           branches:
             only: master
