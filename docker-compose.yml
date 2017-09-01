@@ -1,7 +1,7 @@
 version: '2'
 services:
   erb-rabbitmq-server:
-      container_name: erb-rabbitmq-server
-      image: rabbitmq:alpine
-      ports:
-        - 5672:5672
+    container_name: erb-rabbitmq-server
+    image: rabbitmq:alpine
+    ports:
+      - 5672:5672
