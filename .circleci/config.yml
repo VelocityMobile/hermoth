@@ -24,9 +24,11 @@ jobs:
           command: |
             set -x
             docker-compose up -d
+            docker run --network container:erb-rabbitmq-server \
+                appropriate/curl --retry 10 --retry-delay 1 --retry-connrefused http://localhost:5672
 
       - run: docker ps
-      
+
       - run:
           name: Install dependecies
           command: npm install
