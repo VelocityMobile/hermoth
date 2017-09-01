@@ -32,11 +32,15 @@ jobs:
             fi
 # Ensure jobs are run sequentially
 # Publish should only be run once and if tests pass
+
 workflows:
   version: 2
   build-and-deploy:
     jobs:
-      - test
+      - build
       - deploy:
-        requires:
-          - build
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
