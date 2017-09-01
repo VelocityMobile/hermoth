@@ -21,6 +21,7 @@ jobs:
       - run:
           name: Setup rabbbitmq
           command: |
+            sudo apt-get install ruby-full
             ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install)"
             test -d ~/.linuxbrew && PATH="$HOME/.linuxbrew/bin:$PATH"
             test -d /home/linuxbrew/.linuxbrew && PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
