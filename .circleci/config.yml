@@ -13,11 +13,15 @@ jobs:
           name: Run tests
           command: npm test
   deploy:
+    machine:
+      enabled: true
     docker:
       - image: circleci/node:8.3.0
     steps:
       - checkout
-      - run: ./deploy/check-publish-version
+      - run:
+          name: Check npm package version
+          command: ./deploy/check-publish-version
       - run:
           name: Publish package to npm
           command: |
@@ -36,6 +40,3 @@ workflows:
       - deploy:
         requires:
           - build
-        filters:
-          branches:
-            only: master
