@@ -1,13 +1,5 @@
 version: 2.0
 
-dependencies:
-        pre:
-          - echo 'deb http://www.rabbitmq.com/debian/ testing main' | sudo tee /etc/apt/sources.list.d/rabbitmq.list
-          - wget -O- https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | sudo apt-key add -
-          - sudo apt-get update
-          - sudo apt-get install rabbitmq-server
-          - sudo service rabbitmq-server start
-
 jobs:
   build:
     docker:
@@ -16,23 +8,6 @@ jobs:
     steps:
       - checkout
 
-        # This should go into custom primary image, here's only for the sake of explanation
-#      - setup_remote_docker
-#
-#      - run:
-#          name: Install Docker Compose
-#          command: |
-#            set -e
-#            sudo chown -R $(whoami) /usr/local/bin
-#            sudo curl -L https://github.com/docker/compose/releases/download/1.11.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-#            sudo chmod +x /usr/local/bin/docker-compose
-#
-#      - run:
-#          name: Start container
-#          command: |
-#            set -x
-#            docker run -p 5672:5672 rabbitmq:alpine
-
       - run:
           name: Install dependecies
           command: npm install
@@ -40,12 +15,6 @@ jobs:
       - run:
           name: Run tests
           command: npm test
-#
-#      - run:
-#          name: Stop container
-#          command: |
-#            set -x
-#            docker-compose down
 
   deploy:
     docker:
@@ -59,12 +28,7 @@ jobs:
 
       - run:
           name: Publish package to npm
-          command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              npm publish
-            else
-              echo "Not on master branch so not publishing to npm
-            fi
+          command: npm publish
 # Ensure jobs are run sequentially
 # Publish should only be run once and if tests pass
 
