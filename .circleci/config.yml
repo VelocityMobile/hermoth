@@ -24,7 +24,7 @@ jobs:
           command: |
             set -x
             docker-compose up -d
-            curl -i 'amqp://localhost:5672'
+            curl -i 'http://localhost:5672'
 
       - run: docker ps
 
