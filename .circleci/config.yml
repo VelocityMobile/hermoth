@@ -25,6 +25,8 @@ jobs:
             set -x
             docker-compose up -d
 
+      - run: docker ps
+      
       - run:
           name: Install dependecies
           command: npm install
