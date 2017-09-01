@@ -5,7 +5,7 @@ jobs:
       - image: circleci/node:8.3.0
     steps:
       - run: npm test
-  publish:
+  build:
     docker:
       - image: circleci/node:8.3.0
     steps:
@@ -24,7 +24,7 @@ workflows:
   version: 2
   test-&-publish:
     jobs:
-      -test
-      -publish:
+      - test
+      - build:
         requires:
           - test
