@@ -14,7 +14,8 @@ jobs:
           name: Install Docker Compose
           command: |
             set -x
-            sudo chmod -R +X /usr/local/bin/
+            sudo chmod -R +rwx /usr/local/bin/
+            mkdir /usr/local/bin/docker-compose
             curl -L https://github.com/docker/compose/releases/download/1.11.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
             ls -la /usr/local/
             chown +x /usr/local/bin/docker-compose
