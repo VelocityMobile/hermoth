@@ -7,7 +7,7 @@ dependencies:
           - sudo apt-get update
           - sudo apt-get install rabbitmq-server
           - sudo service rabbitmq-server start
-          
+
 jobs:
   build:
     docker:
@@ -38,9 +38,7 @@ jobs:
 
       - run:
           name: Run tests
-          command: |
-            docker ps
-            npm test
+          command: npm test
 #
 #      - run:
 #          name: Stop container
