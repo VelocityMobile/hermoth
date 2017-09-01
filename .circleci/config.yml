@@ -3,7 +3,7 @@ version: 2.0
 jobs:
   build:
     docker:
-      - image: circleci/node:8.4.0
+      - image: circleci/rube:latest-node
     steps:
       - checkout
 
@@ -21,7 +21,6 @@ jobs:
       - run:
           name: Setup rabbbitmq
           command: |
-            sudo apt-get -y install ruby-full
             ruby -y -e "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install)"
             test -d ~/.linuxbrew && PATH="$HOME/.linuxbrew/bin:$PATH"
             test -d /home/linuxbrew/.linuxbrew && PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
@@ -34,6 +33,16 @@ jobs:
       - run:
           name: Start rabbitmq
           command: rabbitmq-server
+
+      - run:
+          name: Install node
+          command: |
+            sudo apt-get update
+            sudo apt-get install build-essential libssl-dev
+            curl -sL https://raw.githubusercontent.com/creationix/nvm/v0.31.0/install.sh -o install_nvm.sh
+            bash install_nvm.sh
+            source ~/.profile
+            nvm install 8.0.0
 
       - run:
           name: Install dependecies
