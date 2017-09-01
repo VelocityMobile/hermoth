@@ -1,5 +1,9 @@
 version: 2.0
 
+dependencies:
+  pre:
+    - echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+
 jobs:
   build:
     docker:
@@ -28,7 +32,7 @@ jobs:
 
       - run:
           name: Publish package to npm
-          command: npm publish
+          command: npm run 2npm
 # Ensure jobs are run sequentially
 # Publish should only be run once and if tests pass
 
