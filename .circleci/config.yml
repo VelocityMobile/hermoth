@@ -23,9 +23,6 @@ jobs:
           command: |
             set -x
             docker-compose up -d
-            sysctl net.ipv4.conf.all.forwarding
-
-      - run: docker ps
 
       - run:
           name: Install dependecies
@@ -33,7 +30,9 @@ jobs:
 
       - run:
           name: Run tests
-          command: npm test
+          command: |
+            docker ps
+            npm test
 
       - run:
           name: Stop container
