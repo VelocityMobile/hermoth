@@ -13,8 +13,7 @@
     "test:local": "mocha --compilers js:babel-register --require babel-polyfill --timeout 7000",
     "test": "mocha --compilers js:babel-register --require babel-polyfill --timeout 7000",
     "test:watch": "mocha --compilers js:babel-register --require babel-polyfill -w",
-    "lint": "eslint lib test",
-    "2npm": "publish"
+    "lint": "eslint lib test"
   },
   "repository": {
     "type": "git",
