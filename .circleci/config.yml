@@ -23,7 +23,7 @@ jobs:
           command: |
             set -x
             docker-compose up -d
-            docker ps
+            docker network connect multi-host-network erb-rabbitmq-server
 
       - run: docker ps
 
