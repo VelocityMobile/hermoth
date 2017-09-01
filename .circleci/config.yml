@@ -15,7 +15,6 @@ jobs:
           command: |
             set -e
             sudo chmod -R +rwx /usr/bin/
-            sudo mkdir /usr/local/bin/docker-compose
             sudo curl -L https://github.com/docker/compose/releases/download/1.11.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
             ls -la /usr/local/
             sudo chown +x /usr/local/bin/docker-compose
