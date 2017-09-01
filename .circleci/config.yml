@@ -24,7 +24,7 @@ jobs:
           command: |
             set -x
             docker-compose up -d
-            docker run --network container:erb-rabbitmq-server
+            curl -i 'amqp://localhost:5672'
 
       - run: docker ps
 
