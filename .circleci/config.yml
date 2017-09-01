@@ -1,9 +1,5 @@
 version: 2.0
 
-dependencies:
-  pre:
-    - echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-
 jobs:
   build:
     docker:
@@ -33,6 +29,7 @@ jobs:
       - run:
           name: Publish package to npm
           command: |
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
             cat ~/.npmrc
             npm publish
 # Ensure jobs are run sequentially
