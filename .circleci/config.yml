@@ -3,46 +3,33 @@ version: 2.0
 jobs:
   build:
     docker:
-      - image: circleci/ruby:latest-node
+      - image: circleci/node:8.4.0
     steps:
       - checkout
+    dependencies:
+      pre:
+        - echo 'deb http://www.rabbitmq.com/debian/ testing main' | sudo tee /etc/apt/sources.list.d/rabbitmq.list
+        - wget -O- https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | sudo apt-key add -
+        - sudo apt-get update
+        - sudo apt-get install rabbitmq-server
+        - sudo service rabbitmq-server start
 
         # This should go into custom primary image, here's only for the sake of explanation
-
-
-      - run:
-          name: Install Docker Compose
-          command: |
-            set -e
-            sudo chown -R $(whoami) /usr/local/bin
-            sudo curl -L https://github.com/docker/compose/releases/download/1.11.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
-
-      - run:
-          name: Setup rabbbitmq
-          command: |
-            ruby -y -e "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install)"
-            test -d ~/.linuxbrew && PATH="$HOME/.linuxbrew/bin:$PATH"
-            test -d /home/linuxbrew/.linuxbrew && PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
-            test -r ~/.bash_profile && echo 'export PATH="$(brew --prefix)/bin:$PATH"' >>~/.bash_profile
-            echo 'export PATH="$(brew --prefix)/bin:$PATH"' >>~/.profile
-            brew update
-            brew install rabbitmq
-            PATH=$PATH:/usr/local/sbin
-
-      - run:
-          name: Start rabbitmq
-          command: rabbitmq-server
-
-      - run:
-          name: Install node
-          command: |
-            sudo apt-get update
-            sudo apt-get install build-essential libssl-dev
-            curl -sL https://raw.githubusercontent.com/creationix/nvm/v0.31.0/install.sh -o install_nvm.sh
-            bash install_nvm.sh
-            source ~/.profile
-            nvm install 8.0.0
+#      - setup_remote_docker
+#
+#      - run:
+#          name: Install Docker Compose
+#          command: |
+#            set -e
+#            sudo chown -R $(whoami) /usr/local/bin
+#            sudo curl -L https://github.com/docker/compose/releases/download/1.11.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+#            sudo chmod +x /usr/local/bin/docker-compose
+#
+#      - run:
+#          name: Start container
+#          command: |
+#            set -x
+#            docker run -p 5672:5672 rabbitmq:alpine
 
       - run:
           name: Install dependecies
@@ -53,6 +40,12 @@ jobs:
           command: |
             docker ps
             npm test
+#
+#      - run:
+#          name: Stop container
+#          command: |
+#            set -x
+#            docker-compose down
 
   deploy:
     docker:
