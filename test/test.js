@@ -1,7 +1,6 @@
 /* eslint-env node*/
 
 import assert from 'assert';
-import { map } from 'ramda';
 import sinon from 'sinon';
 import Hermoth from '../lib/hermoth';
 let hermoth = new Hermoth('amqp://localhost:5672', 'erb');
@@ -9,7 +8,6 @@ let hermoth = new Hermoth('amqp://localhost:5672', 'erb');
 
 describe('hermoth', () => {
     describe('connection established', () => {
-
         it('initiates', async () => {
             let doConnectSpy = sinon.spy(hermoth, 'doConnect');
             let result = await hermoth.init();
