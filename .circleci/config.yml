@@ -23,7 +23,7 @@ jobs:
           command: |
             set -x
             docker-compose up -d
-            docker network connect multi-host-network erb-rabbitmq-server
+            sysctl net.ipv4.conf.all.forwarding
 
       - run: docker ps
 
