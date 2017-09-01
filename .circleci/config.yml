@@ -8,7 +8,7 @@ jobs:
       - checkout
 
         # This should go into custom primary image, here's only for the sake of explanation
-      - setup_remote_docker
+
 
       - run:
           name: Install Docker Compose
