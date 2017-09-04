@@ -1,4 +1,10 @@
 {
   "presets": ["latest"],
-  "plugins": ["transform-regenerator"]
+  "plugins": [
+    ["babel-plugin-root-import"],
+    ["transform-runtime", {
+      "polyfill": false,
+      "regenerator": true
+    }]
+  ]
 }
