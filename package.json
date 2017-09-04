@@ -8,7 +8,7 @@
     "test": "test"
   },
   "scripts": {
-    "prepublish": "babel lib --out-dir src",
+    "prepublish": "node_modules/babel-cli/bin/babel.js lib --out-dir src",
     "pretest:local": "docker-compose up -d && npm run prepublish",
     "posttest:local": "docker-compose down",
     "test:local": "mocha --compilers js:babel-register --require babel-polyfill --timeout 7000",
