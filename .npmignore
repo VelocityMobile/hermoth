@@ -2,3 +2,4 @@
 deploy/check-publish-version
 docker-compose.yml
 .eslintrc
+/lib/

@@ -1,14 +1,15 @@
 {
   "name": "hermoth",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "A wrapper for the publish/subscribe messaging pattern on top of an AMQP-compatible message broker",
-  "main": "lib/hermoth",
+  "main": "src/hermoth",
   "directories": {
     "lib": "lib",
     "test": "test"
   },
   "scripts": {
-    "pretest:local": "docker-compose up -d",
+    "prepublish": "node_modules/babel-cli/bin/babel.js lib --out-dir src",
+    "pretest:local": "docker-compose up -d && npm run prepublish",
     "posttest:local": "docker-compose down",
     "test:local": "mocha --compilers js:babel-register --require babel-polyfill --timeout 7000",
     "test": "mocha --compilers js:babel-register --require babel-polyfill --timeout 7000",
