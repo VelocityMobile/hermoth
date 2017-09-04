@@ -1,6 +1,6 @@
 {
   "name": "hermoth",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A wrapper for the publish/subscribe messaging pattern on top of an AMQP-compatible message broker",
   "main": "src/hermoth",
   "directories": {
@@ -35,6 +35,7 @@
   "homepage": "https://github.com/VelocityMobile/hermoth#readme",
   "dependencies": {
     "amqplib": "^0.5.1",
+    "babel-plugin-transform-regenerator": "^6.26.0",
     "babel-preset-stage-0": "^6.24.1",
     "bluebird": "^3.5.0",
     "chalk": "^2.1.0",
