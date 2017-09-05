@@ -3,8 +3,8 @@
 import assert from 'assert';
 import sinon from 'sinon';
 import Hermoth from '../lib/hermoth';
-let hermoth = new Hermoth('amqp://0.0.0.0:5672', 'erb');
 
+let hermoth = new Hermoth('amqp://0.0.0.0:5672', 'erb');
 
 describe('hermoth', () => {
     describe('connection established', () => {
