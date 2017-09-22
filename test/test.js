@@ -10,7 +10,7 @@ describe('hermoth', () => {
 
     const EVENT_NAME = 'foo:info'
 
-    it('constructs', async () => {
+    it('constructs', () => {
       hermoth = new Hermoth(AMQP_ENDPOINT_URL, AMQP_EXCHANGE_NAME)
       assert.ok(hermoth)
     })
@@ -30,14 +30,14 @@ describe('hermoth', () => {
       assert.ok(result)
     })
 
-    it('subscribes and consumes', () => {
+    it('subscribes and consumes', async () => {
       const listenerStub = sinon.stub()
       hermoth.subscribe(EVENT_NAME, listenerStub)
 
       const name = EVENT_NAME
       const blob = JSON.parse('{"availabilities":"changed"}')
 
-      hermoth.consume({ content: JSON.stringify({ name, blob }) })
+      await hermoth.consume({ content: JSON.stringify({ name, blob }) })
       sinon.assert.called(listenerStub)
     })
   })
