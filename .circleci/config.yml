@@ -30,7 +30,7 @@ jobs:
           name: Publish package to npm
           command: |
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            npm install -S babel-core babel-cli babel-preset-latest
+            npm install -D babel-core babel-cli babel-preset-latest babel-plugin-add-module-exports babel-plugin-transform-runtime babel-plugin-root-import
             npm publish
 
   test:
