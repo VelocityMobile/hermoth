@@ -1,6 +1,6 @@
 {
   "name": "hermoth",
-  "version": "1.0.12",
+  "version": "2.0.0",
   "description": "A wrapper for the publish/subscribe messaging pattern on top of an AMQP-compatible message broker",
   "main": "src/hermoth",
   "directories": {
@@ -10,9 +10,10 @@
   "scripts": {
     "prepublish": "node_modules/babel-cli/bin/babel.js lib --out-dir src",
     "pretest:local": "docker-compose up -d && npm run prepublish",
-    "posttest:local": "docker-compose down",
+    "posttest:local": "npm run lint && docker-compose down",
     "test:local": "mocha --compilers js:babel-register --require babel-polyfill --timeout 7000",
     "test": "mocha --compilers js:babel-register --require babel-polyfill --timeout 7000",
+    "posttest": "npm run lint",
     "test:watch": "mocha --compilers js:babel-register --require babel-polyfill -w",
     "lint": "eslint lib test"
   },
@@ -34,27 +35,27 @@
   },
   "homepage": "https://github.com/VelocityMobile/hermoth#readme",
   "dependencies": {
-    "amqplib": "^0.5.1",
-    "babel-plugin-add-module-exports": "^0.2.1",
-    "babel-plugin-root-import": "^5.1.0",
-    "babel-plugin-transform-regenerator": "^6.26.0",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-root-import": "^4.1.8",
-    "bluebird": "^3.5.0",
-    "chalk": "^2.1.0",
-    "menna": "^1.0.3",
-    "uuid": "^3.1.0"
+    "amqplib": "0.5.1",
+    "babel-plugin-add-module-exports": "0.2.1",
+    "babel-plugin-root-import": "5.1.0",
+    "babel-plugin-transform-regenerator": "6.26.0",
+    "babel-plugin-transform-runtime": "6.23.0",
+    "babel-root-import": "4.1.8",
+    "bluebird": "3.5.0",
+    "chalk": "2.1.0",
+    "menna": "1.0.3",
+    "uuid": "3.1.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.18.0",
-    "babel-core": "^6.26.0",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-latest": "^6.16.0",
-    "babel-register": "^6.18.0",
-    "eslint": "^3.9.1",
-    "eslint-config-airbnb-base": "^10.0.1",
-    "eslint-plugin-import": "^2.2.0",
-    "mocha": "^3.1.2",
-    "sinon": "^1.17.6"
+    "babel-cli": "6.18.0",
+    "babel-core": "6.26.0",
+    "babel-polyfill": "6.26.0",
+    "babel-preset-latest": "6.16.0",
+    "babel-register": "6.18.0",
+    "eslint": "3.9.1",
+    "eslint-config-airbnb-base": "10.0.1",
+    "eslint-plugin-import": "2.2.0",
+    "mocha": "3.1.2",
+    "sinon": "1.17.6"
   }
 }

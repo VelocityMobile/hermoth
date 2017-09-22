@@ -1,33 +1,44 @@
-/* eslint-env node*/
-
-import assert from 'assert';
-import sinon from 'sinon';
-import {init, publish, subscribe, doConnect, consume} from '../lib/hermoth';
+import assert from 'assert'
+import sinon from 'sinon'
+import Hermoth from '../lib/hermoth'
 
 describe('hermoth', () => {
-    describe('connection established', () => {
-        it('initiates', async () => {
-            let result = await init('amqp://0.0.0.0:5672', 'erb');
-            assert.ok(result);
-        });
+  describe('connection established', () => {
+    let hermoth
+    const AMQP_ENDPOINT_URL = 'amqp://0.0.0.0:5672'
+    const AMQP_EXCHANGE_NAME = 'test_exchange'
 
-        it('does connection', async () => {
-            let result = await doConnect();
-            assert.ok(result);
-        });
+    const EVENT_NAME = 'foo:info'
 
-        it('publishes', async () => {
-            let result = await publish('join:created', {"availabilities":"changed"});
-            assert.ok(result);
-        });
+    it('constructs', () => {
+      hermoth = new Hermoth(AMQP_ENDPOINT_URL, AMQP_EXCHANGE_NAME)
+      assert.ok(hermoth)
+    })
 
-        it('consumes and subscribes', () => {
-            let listenerStub = sinon.stub();
-            subscribe('join:created', listenerStub);
-            let name = "join:created";
-            let blob = JSON.parse('{"availabilities":"changed"}');
-            consume({content: JSON.stringify({name, blob})});
-            sinon.assert.called(listenerStub);
-        });
-    });
-});
+    it('initiates', async () => {
+      const result = await hermoth.init()
+      assert.ok(result)
+    })
+
+    it('connects', async () => {
+      const result = await hermoth.doConnect()
+      assert.ok(result)
+    })
+
+    it('publishes', async () => {
+      const result = await hermoth.publish(EVENT_NAME, { foo: 'bar' })
+      assert.ok(result)
+    })
+
+    it('subscribes and consumes', async () => {
+      const listenerStub = sinon.stub()
+      hermoth.subscribe(EVENT_NAME, listenerStub)
+
+      const name = EVENT_NAME
+      const blob = JSON.parse('{"availabilities":"changed"}')
+
+      await hermoth.consume({ content: JSON.stringify({ name, blob }) })
+      sinon.assert.called(listenerStub)
+    })
+  })
+})

@@ -3,7 +3,7 @@ version: 2.0
 jobs:
   build:
     docker:
-      - image: circleci/node:8.4.0
+      - image: circleci/node:boron
       - image: circleci/rabbitmq:3.6.6
     steps:
       - checkout
@@ -18,7 +18,7 @@ jobs:
 
   deploy:
     docker:
-      - image: circleci/node:8.3.0
+      - image: circleci/node:boron
     steps:
       - checkout
 
@@ -32,6 +32,22 @@ jobs:
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
             npm install -S babel-core babel-cli babel-preset-latest
             npm publish
+
+  test:
+    docker:
+        - image: circleci/node:boron
+    branches:
+      only: develop
+    steps:
+      - checkout
+
+      - run:
+          name: Install dependecies
+          command: npm install
+
+      - run:
+          name: Run tests
+          command: npm test
 # Ensure jobs are run sequentially
 # Publish should only be run once and if tests pass
 
