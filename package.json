@@ -37,7 +37,6 @@
   "dependencies": {
     "amqplib": "0.5.1",
     "babel-plugin-add-module-exports": "0.2.1",
-    "babel-plugin-root-import": "5.1.0",
     "babel-plugin-transform-regenerator": "6.26.0",
     "babel-plugin-transform-runtime": "6.23.0",
     "babel-root-import": "4.1.8",
@@ -49,6 +48,7 @@
   "devDependencies": {
     "babel-cli": "6.18.0",
     "babel-core": "6.26.0",
+    "babel-plugin-root-import": "5.1.0",
     "babel-polyfill": "6.26.0",
     "babel-preset-latest": "6.16.0",
     "babel-register": "6.18.0",
