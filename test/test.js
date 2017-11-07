@@ -9,6 +9,7 @@ describe('hermoth', () => {
     const AMQP_EXCHANGE_NAME = 'test_exchange'
 
     const EVENT_NAME = 'foo:info'
+    const EVENT_NAME2 = 'baz:info'
 
     it('constructs', () => {
       hermoth = new Hermoth(AMQP_ENDPOINT_URL, AMQP_EXCHANGE_NAME)
@@ -25,19 +26,35 @@ describe('hermoth', () => {
       assert.ok(result)
     })
 
-    it('publishes', async () => {
+    it('publishes to foo', async () => {
       const result = await hermoth.publish(EVENT_NAME, { foo: 'bar' })
       assert.ok(result)
     })
 
-    it('subscribes and consumes', async () => {
+    it('subscribes and consumes when listener is not a promise', () => {
       const listenerStub = sinon.stub()
       hermoth.subscribe(EVENT_NAME, listenerStub)
 
       const name = EVENT_NAME
       const blob = JSON.parse('{"availabilities":"changed"}')
 
-      await hermoth.consume({ content: JSON.stringify({ name, blob }) })
+      hermoth.consume({ content: JSON.stringify({ name, blob }) })
+      sinon.assert.called(listenerStub)
+    })
+
+    it('publishes to baz', async () => {
+      const result = await hermoth.publish(EVENT_NAME, { baz: 'bit' })
+      assert.ok(result)
+    })
+
+    it('subscribes and consumes when listener is a promise', () => {
+      const listenerStub = sinon.stub().returns(Promise)
+      hermoth.subscribe(EVENT_NAME2, listenerStub)
+
+      const name = EVENT_NAME2
+      const blob = JSON.parse('{"availabilities":"changed"}')
+
+      hermoth.consume({ content: JSON.stringify({ name, blob }) })
       sinon.assert.called(listenerStub)
     })
   })
