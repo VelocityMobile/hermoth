@@ -11,6 +11,12 @@ describe('hermoth', () => {
     const EVENT_NAME = 'foo:info'
     const EVENT_NAME2 = 'baz:info'
 
+    const uuidV1 = '4a3ea0c5-cff6-4a88-aeab-26b4e2d6497a'
+    const uuidV2 = '0ce231f8-8331-4398-9232-8eb16474f87c'
+
+    const payload1 = { foo: 'bar' }
+    const payload2 = { baz: 'bit' }
+
     it('constructs', () => {
       hermoth = new Hermoth(AMQP_ENDPOINT_URL, AMQP_EXCHANGE_NAME)
       assert.ok(hermoth)
@@ -27,7 +33,7 @@ describe('hermoth', () => {
     })
 
     it('publishes to foo', async () => {
-      const result = await hermoth.publish(EVENT_NAME, { foo: 'bar' })
+      const result = await hermoth.publish(EVENT_NAME, payload1)
       assert.ok(result)
     })
 
@@ -35,15 +41,14 @@ describe('hermoth', () => {
       const listenerStub = sinon.stub()
       hermoth.subscribe(EVENT_NAME, listenerStub)
 
-      const name = EVENT_NAME
-      const blob = JSON.parse('{"availabilities":"changed"}')
+      const blob = `{"payload":{"foo":"bar"},"name":"${EVENT_NAME}","id":"${uuidV1}"}`
 
-      hermoth.consume({ content: JSON.stringify({ name, blob }) })
-      sinon.assert.called(listenerStub)
+      hermoth.consume({ content: blob })
+      sinon.assert.calledWith(listenerStub, payload1, EVENT_NAME)
     })
 
     it('publishes to baz', async () => {
-      const result = await hermoth.publish(EVENT_NAME, { baz: 'bit' })
+      const result = await hermoth.publish(EVENT_NAME, payload2)
       assert.ok(result)
     })
 
@@ -51,11 +56,10 @@ describe('hermoth', () => {
       const listenerStub = sinon.stub().returns(Promise)
       hermoth.subscribe(EVENT_NAME2, listenerStub)
 
-      const name = EVENT_NAME2
-      const blob = JSON.parse('{"availabilities":"changed"}')
+      const blob = `{"payload":{"baz":"bit"},"name":"${EVENT_NAME2}","id":"${uuidV2}"}`
 
-      hermoth.consume({ content: JSON.stringify({ name, blob }) })
-      sinon.assert.called(listenerStub)
+      hermoth.consume({ content: blob })
+      sinon.assert.calledWith(listenerStub, payload2, EVENT_NAME2)
     })
   })
 })
