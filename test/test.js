@@ -34,11 +34,12 @@ describe('hermoth', () => {
       const listenerStub = sinon.stub()
       hermoth.subscribe(EVENT_NAME, listenerStub)
 
+      const id = 42
       const name = EVENT_NAME
-      const blob = JSON.parse('{"availabilities":"changed"}')
+      const payload = { availabilities: 'changed' }
 
-      await hermoth.consume({ content: JSON.stringify({ name, blob }) })
-      sinon.assert.called(listenerStub)
+      await hermoth.consume({ content: JSON.stringify({ id, name, payload }) })
+      sinon.assert.calledWith(listenerStub, payload, name, id)
     })
   })
 })
