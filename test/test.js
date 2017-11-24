@@ -1,4 +1,5 @@
 import assert from 'assert'
+import menna from 'menna'
 import sinon from 'sinon'
 import amqplib from 'amqplib'
 import Hermoth from '../lib/hermoth'
@@ -9,23 +10,20 @@ const EVENT_NAME = 'foo:info'
 
 describe('hermoth', () => {
   describe('construction', () => {
-    it('constructs', () => {
-      const hermoth = new Hermoth(AMQP_ENDPOINT_URL, AMQP_EXCHANGE_NAME)
-      assert.ok(hermoth)
-    })
-
     it('constructs with the new options', () => {
       const hermoth = new Hermoth({
         amqpEndpoint: AMQP_ENDPOINT_URL,
         amqpExchangeName: AMQP_EXCHANGE_NAME,
         connectionRetryDelay: 3000,
-        disableConnectionRetry: true,
+        retryConnection: false,
+        logger: menna,
       })
 
       assert.equal(AMQP_ENDPOINT_URL, hermoth.amqpEndpoint)
       assert.equal(AMQP_EXCHANGE_NAME, hermoth.amqpExchangeName)
       assert.equal(3000, hermoth.connectionRetryDelay)
       assert.equal(false, hermoth.retryConnection)
+      assert.equal(menna, hermoth.logger)
     })
   })
 
@@ -58,6 +56,7 @@ describe('hermoth', () => {
         amqpExchangeName: AMQP_EXCHANGE_NAME,
         connectionRetryDelay: 3000,
         disableConnectionRetry: true,
+        logger: menna,
       })
     })
 
