@@ -9,20 +9,32 @@ const AMQP_EXCHANGE_NAME = 'test_exchange'
 const EVENT_NAME = 'foo:info'
 
 describe('hermoth', () => {
+  const hermothFactory = (overrideOptions = {}) => {
+    const args = Object.assign({
+      amqpEndpoint: AMQP_ENDPOINT_URL,
+      amqpExchangeName: AMQP_EXCHANGE_NAME,
+      connectionRetryDelay: 3000,
+      logger: menna,
+      maxRetries: 1,
+    }, overrideOptions)
+    return new Hermoth(args)
+  }
+
   describe('construction', () => {
     it('constructs with the new options', () => {
-      const hermoth = new Hermoth({
-        amqpEndpoint: AMQP_ENDPOINT_URL,
-        amqpExchangeName: AMQP_EXCHANGE_NAME,
+      const options = {
+        amqpEndpoint: 'amqpEndpoint',
+        amqpExchangeName: 'amqpExchangeName',
         connectionRetryDelay: 3000,
-        retryConnection: false,
+        maxRetries: 10,
         logger: menna,
-      })
+      }
+      const hermoth = hermothFactory(options)
 
-      assert.equal(AMQP_ENDPOINT_URL, hermoth.amqpEndpoint)
-      assert.equal(AMQP_EXCHANGE_NAME, hermoth.amqpExchangeName)
+      assert.equal('amqpEndpoint', hermoth.amqpEndpoint)
+      assert.equal('amqpExchangeName', hermoth.amqpExchangeName)
       assert.equal(3000, hermoth.connectionRetryDelay)
-      assert.equal(false, hermoth.retryConnection)
+      assert.equal(10, hermoth.maxRetries)
       assert.equal(menna, hermoth.logger)
     })
   })
@@ -31,11 +43,14 @@ describe('hermoth', () => {
     let hermoth
     let connectStub = null
     let channelStub = null
-    let mockAmqpLib
+
+    const setupHermoth = () => {
+      amqplib.connect = sinon.stub()
+      amqplib.connect.onFirstCall().returns(connectStub)
+      hermoth = hermothFactory()
+    }
 
     beforeEach(() => {
-      mockAmqpLib = sinon.mock(amqplib)
-
       channelStub = {
         assertExchange: sinon.stub(),
         assertQueue: sinon.stub().returns({ queue: null }),
@@ -48,33 +63,51 @@ describe('hermoth', () => {
         once: sinon.stub(),
         createChannel: sinon.stub().returns(channelStub),
       }
-
-      mockAmqpLib.expects('connect').once().returns(connectStub)
-
-      hermoth = new Hermoth({
-        amqpEndpoint: AMQP_ENDPOINT_URL,
-        amqpExchangeName: AMQP_EXCHANGE_NAME,
-        connectionRetryDelay: 3000,
-        disableConnectionRetry: true,
-        logger: menna,
-      })
     })
 
-    afterEach(() => mockAmqpLib.restore())
-
     it('initiates', async () => {
+      setupHermoth()
+
       const result = await hermoth.init()
 
       assert.ok(result)
-      assert(mockAmqpLib.verify())
     })
 
     it('connects', async () => {
+      setupHermoth()
+
       const result = await hermoth.doConnect()
       assert.equal(connectStub, result)
     })
 
+    it('connects', async () => {
+      setupHermoth()
+
+      const result = await hermoth.doConnect()
+      assert.equal(connectStub, result)
+    })
+
+    it('throws an error connected after the second attempt', async () => {
+      amqplib.connect = sinon.stub()
+      const expectedError = { code: 2 }
+      amqplib.connect.onFirstCall().throws({ code: 1 })
+        .onSecondCall()
+        .throws(expectedError)
+
+      let error = null
+      hermoth = hermothFactory({ connectionRetryDelay: 0, maxRetries: 1 })
+
+      try {
+        await hermoth.doConnect()
+      } catch (e) {
+        error = e
+      }
+      assert.equal(error, expectedError)
+    })
+
     it('publishes', async () => {
+      setupHermoth()
+
       const expectedPayload = { foo: 'bar' }
       await hermoth.init()
       const result = await hermoth.publish(EVENT_NAME, expectedPayload)
@@ -91,6 +124,8 @@ describe('hermoth', () => {
     })
 
     it('subscribes and consumes', async () => {
+      setupHermoth()
+
       const listenerStub = sinon.stub()
       hermoth.subscribe(EVENT_NAME, listenerStub)
 
