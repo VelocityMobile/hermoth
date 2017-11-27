@@ -1,5 +1,4 @@
 import assert from 'assert'
-import menna from 'menna'
 import sinon from 'sinon'
 import amqplib from 'amqplib'
 import Hermoth from '../lib/hermoth'
@@ -9,12 +8,19 @@ const AMQP_EXCHANGE_NAME = 'test_exchange'
 const EVENT_NAME = 'foo:info'
 
 describe('hermoth', () => {
+  const logger = {
+    levels: { error: 0, warn: 1, info: 2, verbose: 3, debug: 4, silly: 5 },
+    info: sinon.stub(),
+    debug: sinon.stub(),
+    warn: sinon.stub(),
+    error: sinon.stub(),
+  }
   const hermothFactory = (overrideOptions = {}) => {
     const args = Object.assign({
       amqpEndpoint: AMQP_ENDPOINT_URL,
       amqpExchangeName: AMQP_EXCHANGE_NAME,
       connectionRetryDelay: 3000,
-      logger: menna,
+      logger,
       maxRetries: 1,
     }, overrideOptions)
     return new Hermoth(args)
@@ -27,7 +33,6 @@ describe('hermoth', () => {
         amqpExchangeName: 'amqpExchangeName',
         connectionRetryDelay: 3000,
         maxRetries: 10,
-        logger: menna,
       }
       const hermoth = hermothFactory(options)
 
@@ -35,7 +40,6 @@ describe('hermoth', () => {
       assert.equal('amqpExchangeName', hermoth.amqpExchangeName)
       assert.equal(3000, hermoth.connectionRetryDelay)
       assert.equal(10, hermoth.maxRetries)
-      assert.equal(menna, hermoth.logger)
     })
   })
 
@@ -71,13 +75,7 @@ describe('hermoth', () => {
       const result = await hermoth.init()
 
       assert.ok(result)
-    })
-
-    it('connects', async () => {
-      setupHermoth()
-
-      const result = await hermoth.doConnect()
-      assert.equal(connectStub, result)
+      sinon.assert.called(logger.info)
     })
 
     it('connects', async () => {
@@ -103,6 +101,7 @@ describe('hermoth', () => {
         error = e
       }
       assert.equal(error, expectedError)
+      sinon.assert.called(logger.error)
     })
 
     it('publishes', async () => {
