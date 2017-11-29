@@ -36,15 +36,11 @@ jobs:
   test:
     docker:
         - image: circleci/node:boron
-    branches:
-      only: develop
     steps:
       - checkout
-
       - run:
           name: Install dependecies
           command: npm install
-
       - run:
           name: Run tests
           command: npm test
@@ -56,6 +52,7 @@ workflows:
   build-and-deploy:
     jobs:
       - build
+      - test
       - deploy:
           requires:
             - build
