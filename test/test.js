@@ -22,6 +22,8 @@ describe('hermoth', () => {
       connectionRetryDelay: 3000,
       logger,
       maxRetries: 1,
+      durable: false,
+      noAck: true,
     }, overrideOptions)
     return new Hermoth(args)
   }
@@ -33,6 +35,8 @@ describe('hermoth', () => {
         amqpExchangeName: 'amqpExchangeName',
         connectionRetryDelay: 3000,
         maxRetries: 10,
+        durable: false,
+        noAck: true,
       }
       const hermoth = hermothFactory(options)
 
@@ -40,6 +44,8 @@ describe('hermoth', () => {
       assert.equal('amqpExchangeName', hermoth.amqpExchangeName)
       assert.equal(3000, hermoth.connectionRetryDelay)
       assert.equal(10, hermoth.maxRetries)
+      assert.equal(false, hermoth.durable)
+      assert.equal(true, hermoth.noAck)
     })
   })
 
@@ -48,10 +54,10 @@ describe('hermoth', () => {
     let connectStub = null
     let channelStub = null
 
-    const setupHermoth = () => {
+    const setupHermoth = (overrideOptions = {}) => {
       amqplib.connect = sinon.stub()
       amqplib.connect.onFirstCall().returns(connectStub)
-      hermoth = hermothFactory()
+      hermoth = hermothFactory(overrideOptions)
     }
 
     beforeEach(() => {
@@ -61,6 +67,7 @@ describe('hermoth', () => {
         bindQueue: sinon.stub(),
         consume: sinon.stub().returns({}),
         publish: sinon.stub().returns(true),
+        ack: sinon.stub(),
       }
 
       connectStub = {
@@ -122,7 +129,7 @@ describe('hermoth', () => {
       assert.ok(result)
     })
 
-    it('subscribes and consumes', async () => {
+    it('subscribes and consumes when listener is not a promise', async () => {
       setupHermoth()
 
       const listenerStub = sinon.stub()
@@ -134,6 +141,61 @@ describe('hermoth', () => {
 
       await hermoth.consume({ content: JSON.stringify({ id, name, payload }) })
       sinon.assert.calledWith(listenerStub, payload, name, id)
+    })
+
+    it('subscribes and consumes when listener is a promise', async () => {
+      setupHermoth()
+
+      const listenerStub = sinon.stub().returns(Promise)
+      hermoth.subscribe(EVENT_NAME, listenerStub)
+
+      const id = 42
+      const name = EVENT_NAME
+      const payload = { availabilities: 'changed' }
+
+      await hermoth.consume({ content: JSON.stringify({ id, name, payload }) })
+      sinon.assert.calledWith(listenerStub, payload, name, id)
+    })
+
+    it('provides an acknowledgement when listeners have executed successfully', async () => {
+      setupHermoth({
+        noAck: false,
+      })
+
+      const listenerStub = sinon.stub()
+      hermoth.subscribe(EVENT_NAME, listenerStub)
+
+      const id = 42
+      const name = EVENT_NAME
+      const payload = { availabilities: 'changed' }
+
+      await hermoth.init()
+      await hermoth.consume({ content: JSON.stringify({ id, name, payload }) })
+
+      sinon.assert.calledWith(listenerStub, payload, name, id)
+      sinon.assert.calledWith(channelStub.ack, { id, name, payload })
+    })
+
+    it('does not send acknowledgement when a listener has failed', async () => {
+      setupHermoth({
+        noAck: false,
+      })
+
+      const listenerStub = sinon.stub().throws()
+      hermoth.subscribe(EVENT_NAME, listenerStub)
+
+      const id = 42
+      const name = EVENT_NAME
+      const payload = { availabilities: 'changed' }
+
+      await hermoth.init()
+
+      try {
+        await hermoth.consume({ content: JSON.stringify({ id, name, payload }) })
+      } catch (e) {} // eslint-disable-line no-empty
+
+      sinon.assert.calledWith(listenerStub, payload, name, id)
+      sinon.assert.notCalled(channelStub.ack)
     })
   })
 })
