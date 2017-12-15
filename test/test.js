@@ -111,7 +111,20 @@ describe('hermoth', () => {
       const result = await hermoth.init()
 
       assert.ok(result)
-      sinon.assert.called(logger.info)
+      sinon.assert.called(connectStub.createChannel)
+      sinon.assert.called(channelStub.assertExchange)
+      sinon.assert.called(channelStub.assertQueue)
+      sinon.assert.called(channelStub.bindQueue)
+      sinon.assert.called(channelStub.consume)
+    })
+
+    it('connects to default exchange if no exchange type is given', async () => {
+      setupHermoth({ exchangeType: null })
+
+      const result = await hermoth.init()
+
+      assert.ok(result)
+      sinon.assert.notCalled(channelStub.assertExchange)
     })
 
     it('connects', async () => {
@@ -146,6 +159,7 @@ describe('hermoth', () => {
 
       const expectedPayload = { foo: 'bar' }
       const result = await hermoth.publish(EVENT_NAME, expectedPayload)
+      sinon.assert.called(channelStub.publish)
 
       const args = channelStub.publish.getCall(0).args
       assert.equal(args[0], AMQP_EXCHANGE_NAME)
