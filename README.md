@@ -82,7 +82,7 @@ const consumer = new Hermoth({
 })
 ```
 
-## Message ersistence
+## Message persistence
 
 ### Preventing messages getting lost when they are in the consumer
 
