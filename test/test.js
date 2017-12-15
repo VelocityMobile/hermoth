@@ -17,34 +17,67 @@ describe('hermoth', () => {
   }
   const hermothFactory = (overrideOptions = {}) => {
     const args = Object.assign({
-      amqpEndpoint: AMQP_ENDPOINT_URL,
-      amqpExchangeName: AMQP_EXCHANGE_NAME,
-      connectionRetryDelay: 3000,
+      host: AMQP_ENDPOINT_URL,
+      exchangeName: AMQP_EXCHANGE_NAME,
+      exchangeType: 'direct',
+      queueName: 'my_queue',
+      connectionRetryDelayInMs: 3000,
       logger,
-      maxRetries: 1,
-      durable: false,
+      maxConnectionRetries: 1,
+      durableExchange: false,
+      exclusiveQueue: true,
+      queueBindingKey: '.',
       noAck: true,
     }, overrideOptions)
     return new Hermoth(args)
   }
 
+  const MESSAGE = { id: 42, name: 'foo:info', payload: { availabilities: 'changed' } }
+  const ORIGINAL_MESSAGE = {
+    fields:
+    {
+      consumerTag: 'amq.ctag-UncQHYi6cmGDfr2_UarlkA',
+      deliveryTag: 1,
+      redelivered: false,
+      exchange: '',
+      routingKey: 'bookings',
+    },
+    properties:
+    {
+      deliveryMode: 1,
+    },
+    content: JSON.stringify(MESSAGE),
+  }
+
   describe('construction', () => {
     it('constructs with the new options', () => {
       const options = {
-        amqpEndpoint: 'amqpEndpoint',
-        amqpExchangeName: 'amqpExchangeName',
-        connectionRetryDelay: 3000,
-        maxRetries: 10,
-        durable: false,
+        host: 'amqpEndpoint',
+        exchangeName: 'amqpExchangeName',
+        exchangeType: 'fanout',
+        queueName: 'my_queue',
+        connectionRetryDelayInMs: 3000,
+        maxConnectionRetries: 10,
+        durableExchange: true,
+        durableQueue: true,
+        persistentMessages: true,
+        exclusiveQueue: true,
+        queueBindingKey: '.',
         noAck: true,
       }
       const hermoth = hermothFactory(options)
 
-      assert.equal('amqpEndpoint', hermoth.amqpEndpoint)
-      assert.equal('amqpExchangeName', hermoth.amqpExchangeName)
-      assert.equal(3000, hermoth.connectionRetryDelay)
-      assert.equal(10, hermoth.maxRetries)
-      assert.equal(false, hermoth.durable)
+      assert.equal('amqpEndpoint', hermoth.host)
+      assert.equal('amqpExchangeName', hermoth.exchangeName)
+      assert.equal('fanout', hermoth.exchangeType)
+      assert.equal('my_queue', hermoth.queueName)
+      assert.equal(3000, hermoth.connectionRetryDelayInMs)
+      assert.equal(10, hermoth.maxConnectionRetries)
+      assert.equal(true, hermoth.durableExchange)
+      assert.equal(true, hermoth.durableQueue)
+      assert.equal(true, hermoth.persistentMessages)
+      assert.equal(true, hermoth.exclusiveQueue)
+      assert.equal('.', hermoth.queueBindingKey)
       assert.equal(true, hermoth.noAck)
     })
   })
@@ -56,14 +89,14 @@ describe('hermoth', () => {
 
     const setupHermoth = (overrideOptions = {}) => {
       amqplib.connect = sinon.stub()
-      amqplib.connect.onFirstCall().returns(connectStub)
+      amqplib.connect.returns(connectStub)
       hermoth = hermothFactory(overrideOptions)
     }
 
     beforeEach(() => {
       channelStub = {
         assertExchange: sinon.stub(),
-        assertQueue: sinon.stub().returns({ queue: null }),
+        assertQueue: sinon.stub().returns({ queue: 'my_queue' }),
         bindQueue: sinon.stub(),
         consume: sinon.stub().returns({}),
         publish: sinon.stub().returns(true),
@@ -82,13 +115,30 @@ describe('hermoth', () => {
       const result = await hermoth.init()
 
       assert.ok(result)
-      sinon.assert.called(logger.info)
+      sinon.assert.called(connectStub.createChannel)
+      sinon.assert.calledWith(channelStub.assertExchange,
+        hermoth.exchangeName, hermoth.exchangeType, { durable: hermoth.durableExchange })
+      sinon.assert.calledWith(channelStub.assertQueue, hermoth.queueName,
+        { exclusive: hermoth.exclusiveQueue, persistent: hermoth.durableQueue })
+      sinon.assert.calledWith(channelStub.bindQueue,
+        hermoth.queueName, hermoth.exchangeName, hermoth.queueBindingKey)
+      sinon.assert.calledWith(channelStub.consume,
+        hermoth.queueName, sinon.match.func, { noAck: hermoth.noAck })
+    })
+
+    it('connects to default exchange if no exchange type is given', async () => {
+      setupHermoth({ exchangeType: null })
+
+      const result = await hermoth.init()
+
+      assert.ok(result)
+      sinon.assert.notCalled(channelStub.assertExchange)
     })
 
     it('connects', async () => {
       setupHermoth()
 
-      const result = await hermoth.doConnect()
+      const result = await hermoth.connectToMessageBroker()
       assert.equal(connectStub, result)
     })
 
@@ -100,10 +150,10 @@ describe('hermoth', () => {
         .throws(expectedError)
 
       let error = null
-      hermoth = hermothFactory({ connectionRetryDelay: 0, maxRetries: 1 })
+      hermoth = hermothFactory({ connectionRetryDelayInMs: 0, maxRetries: 1 })
 
       try {
-        await hermoth.doConnect()
+        await hermoth.connectToMessageBroker()
       } catch (e) {
         error = e
       }
@@ -113,14 +163,15 @@ describe('hermoth', () => {
 
     it('publishes', async () => {
       setupHermoth()
+      await hermoth.init()
 
       const expectedPayload = { foo: 'bar' }
-      await hermoth.init()
       const result = await hermoth.publish(EVENT_NAME, expectedPayload)
+      sinon.assert.called(channelStub.publish)
 
       const args = channelStub.publish.getCall(0).args
       assert.equal(args[0], AMQP_EXCHANGE_NAME)
-      assert.equal(args[1], '')
+      assert.equal(args[1], 'foo:info')
 
       const data = JSON.parse(args[2])
       assert.deepEqual(data.payload, expectedPayload)
@@ -131,71 +182,28 @@ describe('hermoth', () => {
 
     it('subscribes and consumes when listener is not a promise', async () => {
       setupHermoth()
+      await hermoth.init()
 
       const listenerStub = sinon.stub()
       hermoth.subscribe(EVENT_NAME, listenerStub)
 
-      const id = 42
-      const name = EVENT_NAME
-      const payload = { availabilities: 'changed' }
+      const ack = sinon.match.func
 
-      await hermoth.consume({ content: JSON.stringify({ id, name, payload }) })
-      sinon.assert.calledWith(listenerStub, payload, name, id)
+      await hermoth.consume(ORIGINAL_MESSAGE)
+      sinon.assert.calledWith(listenerStub, MESSAGE, ack)
     })
 
     it('subscribes and consumes when listener is a promise', async () => {
       setupHermoth()
+      await hermoth.init()
 
       const listenerStub = sinon.stub().returns(Promise)
       hermoth.subscribe(EVENT_NAME, listenerStub)
 
-      const id = 42
-      const name = EVENT_NAME
-      const payload = { availabilities: 'changed' }
+      const ack = sinon.match.func
 
-      await hermoth.consume({ content: JSON.stringify({ id, name, payload }) })
-      sinon.assert.calledWith(listenerStub, payload, name, id)
-    })
-
-    it('provides an acknowledgement when listeners have executed successfully', async () => {
-      setupHermoth({
-        noAck: false,
-      })
-
-      const listenerStub = sinon.stub()
-      hermoth.subscribe(EVENT_NAME, listenerStub)
-
-      const id = 42
-      const name = EVENT_NAME
-      const payload = { availabilities: 'changed' }
-
-      await hermoth.init()
-      await hermoth.consume({ content: JSON.stringify({ id, name, payload }) })
-
-      sinon.assert.calledWith(listenerStub, payload, name, id)
-      sinon.assert.calledWith(channelStub.ack, { id, name, payload })
-    })
-
-    it('does not send acknowledgement when a listener has failed', async () => {
-      setupHermoth({
-        noAck: false,
-      })
-
-      const listenerStub = sinon.stub().throws()
-      hermoth.subscribe(EVENT_NAME, listenerStub)
-
-      const id = 42
-      const name = EVENT_NAME
-      const payload = { availabilities: 'changed' }
-
-      await hermoth.init()
-
-      try {
-        await hermoth.consume({ content: JSON.stringify({ id, name, payload }) })
-      } catch (e) {} // eslint-disable-line no-empty
-
-      sinon.assert.calledWith(listenerStub, payload, name, id)
-      sinon.assert.notCalled(channelStub.ack)
+      await hermoth.consume(ORIGINAL_MESSAGE)
+      sinon.assert.calledWith(listenerStub, MESSAGE, ack)
     })
   })
 })
