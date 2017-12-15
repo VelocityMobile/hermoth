@@ -21,7 +21,7 @@ describe('hermoth', () => {
       exchangeName: AMQP_EXCHANGE_NAME,
       exchangeType: 'direct',
       queueName: 'my_queue',
-      connectionRetryDelay: 3000,
+      connectionRetryDelayInMs: 3000,
       logger,
       maxConnectionRetries: 1,
       durableExchange: false,
@@ -32,6 +32,23 @@ describe('hermoth', () => {
     return new Hermoth(args)
   }
 
+  const MESSAGE = { id: 42, name: 'foo:info', payload: { availabilities: 'changed' } }
+  const ORIGINAL_MESSAGE = {
+    fields:
+    {
+      consumerTag: 'amq.ctag-UncQHYi6cmGDfr2_UarlkA',
+      deliveryTag: 1,
+      redelivered: false,
+      exchange: '',
+      routingKey: 'bookings',
+    },
+    properties:
+    {
+      deliveryMode: 1,
+    },
+    content: JSON.stringify(MESSAGE),
+  }
+
   describe('construction', () => {
     it('constructs with the new options', () => {
       const options = {
@@ -39,7 +56,7 @@ describe('hermoth', () => {
         exchangeName: 'amqpExchangeName',
         exchangeType: 'fanout',
         queueName: 'my_second_queue',
-        connectionRetryDelay: 3000,
+        connectionRetryDelayInMs: 3000,
         maxConnectionRetries: 10,
         durableExchange: false,
         exclusiveQueue: true,
@@ -52,7 +69,7 @@ describe('hermoth', () => {
       assert.equal('amqpExchangeName', hermoth.exchangeName)
       assert.equal('fanout', hermoth.exchangeType)
       assert.equal('my_second_queue', hermoth.queueName)
-      assert.equal(3000, hermoth.connectionRetryDelay)
+      assert.equal(3000, hermoth.connectionRetryDelayInMs)
       assert.equal(10, hermoth.maxConnectionRetries)
       assert.equal(false, hermoth.durableExchange)
       assert.equal(true, hermoth.exclusiveQueue)
@@ -68,7 +85,7 @@ describe('hermoth', () => {
 
     const setupHermoth = (overrideOptions = {}) => {
       amqplib.connect = sinon.stub()
-      amqplib.connect.onFirstCall().returns(connectStub)
+      amqplib.connect.returns(connectStub)
       hermoth = hermothFactory(overrideOptions)
     }
 
@@ -112,7 +129,7 @@ describe('hermoth', () => {
         .throws(expectedError)
 
       let error = null
-      hermoth = hermothFactory({ connectionRetryDelay: 0, maxRetries: 1 })
+      hermoth = hermothFactory({ connectionRetryDelayInMs: 0, maxRetries: 1 })
 
       try {
         await hermoth.connectToMessageBroker()
@@ -125,9 +142,9 @@ describe('hermoth', () => {
 
     it('publishes', async () => {
       setupHermoth()
+      await hermoth.init()
 
       const expectedPayload = { foo: 'bar' }
-      await hermoth.init()
       const result = await hermoth.publish(EVENT_NAME, expectedPayload)
 
       const args = channelStub.publish.getCall(0).args
@@ -143,28 +160,28 @@ describe('hermoth', () => {
 
     it('subscribes and consumes when listener is not a promise', async () => {
       setupHermoth()
+      await hermoth.init()
 
       const listenerStub = sinon.stub()
       hermoth.subscribe(EVENT_NAME, listenerStub)
 
-      const message = { id: 42, name: 'foo:info', payload: { availabilities: 'changed' } }
-      const originalMessage = { content: JSON.stringify(message) }
+      const ack = sinon.match.func
 
-      await hermoth.consume(originalMessage)
-      sinon.assert.calledWith(listenerStub, message, originalMessage)
+      await hermoth.consume(ORIGINAL_MESSAGE)
+      sinon.assert.calledWith(listenerStub, MESSAGE, ack)
     })
 
     it('subscribes and consumes when listener is a promise', async () => {
       setupHermoth()
+      await hermoth.init()
 
       const listenerStub = sinon.stub().returns(Promise)
       hermoth.subscribe(EVENT_NAME, listenerStub)
 
-      const message = { id: 42, name: 'foo:info', payload: { availabilities: 'changed' } }
-      const originalMessage = { content: JSON.stringify(message) }
+      const ack = sinon.match.func
 
-      await hermoth.consume(originalMessage)
-      sinon.assert.calledWith(listenerStub, message, originalMessage)
+      await hermoth.consume(ORIGINAL_MESSAGE)
+      sinon.assert.calledWith(listenerStub, MESSAGE, ack)
     })
   })
 })
