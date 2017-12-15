@@ -74,7 +74,7 @@ If you want to make sure the message is processed, pass `noAck = true` and ackno
 import Hermoth from 'hermoth'
 
 const worker = new Hermoth({
-  // ...
+  // same options as above, plus;
   noAck: false
 })
 
