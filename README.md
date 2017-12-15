@@ -24,7 +24,7 @@ npm test
 ```javascript
 import Hermoth from 'hermoth'
 
-const hermoth = new Hermoth(options) // see below for `options` examples
+const hermoth = new Hermoth(options) // see below for `options` examples in use case sections
 
 // connect or create the exchange and the queue, and start consuming messages
 hermoth.init()
