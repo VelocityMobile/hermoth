@@ -68,22 +68,6 @@ const worker = new Hermoth({
 })
 ```
 
-If you want to make sure the message is processed, pass `noAck = true` and acknowledge the processing of the message. It's very important to acknowledge the message or else the broker will keep re-queueing and delivering it.
-
-```javascript
-import Hermoth from 'hermoth'
-
-const worker = new Hermoth({
-  // same options as above, plus;
-  noAck: false
-})
-
-worker.subscribe('message:type', function consume(msg, originalMessage) {
-  process(msg.payload)
-  this.channel.ack(originalMessage)
-})
-```
-
 ### Use case 2: All instances of the same application type receives the same message
 
 You can achieve this by having each instance of the application creating their own anonymous and disposable queues. Notice we don't pass a `queueName` to the constructor; the broker to generate a random one for us.
@@ -95,5 +79,39 @@ const consumer = new Hermoth({
   host: 'amqp://localhost:5672',
   exchangeName: 'exchange_name',
   exclusiveQueue: true
+})
+```
+
+## Message ersistence
+
+### Preventing messages getting lost when they are in the consumer
+
+To prevent messages getting lost when they were being processed by a consumer; pass `noAck = true` and acknowledge the processing of the message. It's very important to acknowledge the message or else the broker will keep re-queueing and delivering it.
+
+```javascript
+import Hermoth from 'hermoth'
+
+const worker = new Hermoth({
+  // the options of one of the use cases, plus;
+  noAck: false
+})
+
+worker.subscribe('message:type', function consume(msg, originalMessage) {
+  process(msg.payload)
+  this.channel.ack(originalMessage)
+})
+```
+
+### Preventing messages getting lost when they are in the queue
+
+To prevent messages getting lost if the message broker crashes, you need to mark both the queue and the messages as durable. When marked as durable, the message broker will save them to the disk.
+
+```javascript
+import Hermoth from 'hermoth'
+
+const worker = new Hermoth({
+  // the options of one of the use cases, plus;
+  durableQueue: true,
+  persistentMessages: true
 })
 ```

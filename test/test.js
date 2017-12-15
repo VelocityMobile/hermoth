@@ -55,10 +55,12 @@ describe('hermoth', () => {
         host: 'amqpEndpoint',
         exchangeName: 'amqpExchangeName',
         exchangeType: 'fanout',
-        queueName: 'my_second_queue',
+        queueName: 'my_queue',
         connectionRetryDelayInMs: 3000,
         maxConnectionRetries: 10,
-        durableExchange: false,
+        durableExchange: true,
+        durableQueue: true,
+        persistentMessages: true,
         exclusiveQueue: true,
         queueBindingKey: '.',
         noAck: true,
@@ -68,10 +70,12 @@ describe('hermoth', () => {
       assert.equal('amqpEndpoint', hermoth.host)
       assert.equal('amqpExchangeName', hermoth.exchangeName)
       assert.equal('fanout', hermoth.exchangeType)
-      assert.equal('my_second_queue', hermoth.queueName)
+      assert.equal('my_queue', hermoth.queueName)
       assert.equal(3000, hermoth.connectionRetryDelayInMs)
       assert.equal(10, hermoth.maxConnectionRetries)
-      assert.equal(false, hermoth.durableExchange)
+      assert.equal(true, hermoth.durableExchange)
+      assert.equal(true, hermoth.durableQueue)
+      assert.equal(true, hermoth.persistentMessages)
       assert.equal(true, hermoth.exclusiveQueue)
       assert.equal('.', hermoth.queueBindingKey)
       assert.equal(true, hermoth.noAck)
@@ -92,7 +96,7 @@ describe('hermoth', () => {
     beforeEach(() => {
       channelStub = {
         assertExchange: sinon.stub(),
-        assertQueue: sinon.stub().returns({ queue: null }),
+        assertQueue: sinon.stub().returns({ queue: 'my_queue' }),
         bindQueue: sinon.stub(),
         consume: sinon.stub().returns({}),
         publish: sinon.stub().returns(true),
@@ -112,10 +116,14 @@ describe('hermoth', () => {
 
       assert.ok(result)
       sinon.assert.called(connectStub.createChannel)
-      sinon.assert.called(channelStub.assertExchange)
-      sinon.assert.called(channelStub.assertQueue)
-      sinon.assert.called(channelStub.bindQueue)
-      sinon.assert.called(channelStub.consume)
+      sinon.assert.calledWith(channelStub.assertExchange,
+        hermoth.exchangeName, hermoth.exchangeType, { durable: hermoth.durableExchange })
+      sinon.assert.calledWith(channelStub.assertQueue, hermoth.queueName,
+        { exclusive: hermoth.exclusiveQueue, persistent: hermoth.durableQueue })
+      sinon.assert.calledWith(channelStub.bindQueue,
+        hermoth.queueName, hermoth.exchangeName, hermoth.queueBindingKey)
+      sinon.assert.calledWith(channelStub.consume,
+        hermoth.queueName, sinon.match.func, { noAck: hermoth.noAck })
     })
 
     it('connects to default exchange if no exchange type is given', async () => {
