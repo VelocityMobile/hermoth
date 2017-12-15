@@ -49,7 +49,7 @@ hermoth.publish('my-message-name', msg )
 
 At [@velocityapp](https://github.com/VelocityMobile) we have multiple instances (replicas) of the same service running in parallel.
 
-Some messages need to be received by all instances of the application and processed , but some needs to be received and processed by a single instance of the same application type only. You can find how to configure Hermoth to satisfy both needs below.
+Some messages need to be received by all instances of the application and processed , but some need to be received and processed by a single instance of the same application type only. You can find how to configure Hermoth to satisfy both needs below.
 
 ### Use case 1: Only one instance of the same application type receives the message
 
