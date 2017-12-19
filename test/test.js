@@ -95,6 +95,7 @@ describe('hermoth', () => {
 
     beforeEach(() => {
       channelStub = {
+        on: sinon.stub(),
         assertExchange: sinon.stub(),
         assertQueue: sinon.stub().returns({ queue: 'my_queue' }),
         bindQueue: sinon.stub(),
@@ -104,7 +105,7 @@ describe('hermoth', () => {
       }
 
       connectStub = {
-        once: sinon.stub(),
+        on: sinon.stub(),
         createChannel: sinon.stub().returns(channelStub),
       }
     })
@@ -119,7 +120,7 @@ describe('hermoth', () => {
       sinon.assert.calledWith(channelStub.assertExchange,
         hermoth.exchangeName, hermoth.exchangeType, { durable: hermoth.durableExchange })
       sinon.assert.calledWith(channelStub.assertQueue, hermoth.queueName,
-        { exclusive: hermoth.exclusiveQueue, persistent: hermoth.durableQueue })
+        { autoDelete: true, exclusive: hermoth.exclusiveQueue, persistent: hermoth.durableQueue })
       sinon.assert.calledWith(channelStub.bindQueue,
         hermoth.queueName, hermoth.exchangeName, hermoth.queueBindingKey)
       sinon.assert.calledWith(channelStub.consume,
