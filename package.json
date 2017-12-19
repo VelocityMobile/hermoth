@@ -1,6 +1,6 @@
 {
   "name": "hermoth",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "A wrapper for the publish/subscribe messaging pattern on top of an AMQP-compatible message broker",
   "main": "src/hermoth",
   "directories": {
