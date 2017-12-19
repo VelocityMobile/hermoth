@@ -5,12 +5,12 @@ import Hermoth from '../lib/hermoth'
 
 const EventEmitter = require('events')
 
+class Channel extends EventEmitter { }
+class Connection extends EventEmitter { }
+
 const AMQP_ENDPOINT_URL = 'amqp://0.0.0.0:5672'
 const AMQP_EXCHANGE_NAME = 'test_exchange'
 const EVENT_NAME = 'foo:info'
-
-class Channel extends EventEmitter { }
-class Connection extends EventEmitter { }
 
 describe('hermoth', () => {
   const logger = {
