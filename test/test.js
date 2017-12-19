@@ -3,9 +3,14 @@ import sinon from 'sinon'
 import amqplib from 'amqplib'
 import Hermoth from '../lib/hermoth'
 
+const EventEmitter = require('events')
+
 const AMQP_ENDPOINT_URL = 'amqp://0.0.0.0:5672'
 const AMQP_EXCHANGE_NAME = 'test_exchange'
 const EVENT_NAME = 'foo:info'
+
+class Channel extends EventEmitter { }
+class Connection extends EventEmitter { }
 
 describe('hermoth', () => {
   const logger = {
@@ -94,20 +99,17 @@ describe('hermoth', () => {
     }
 
     beforeEach(() => {
-      channelStub = {
-        on: sinon.stub(),
-        assertExchange: sinon.stub(),
-        assertQueue: sinon.stub().returns({ queue: 'my_queue' }),
-        bindQueue: sinon.stub(),
-        consume: sinon.stub().returns({}),
-        publish: sinon.stub().returns(true),
-        ack: sinon.stub(),
-      }
+      channelStub = new Channel()
+      channelStub.assertExchange = sinon.stub()
+      channelStub.assertQueue = sinon.stub().returns({ queue: 'my_queue' })
+      channelStub.bindQueue = sinon.stub()
+      channelStub.consume = sinon.stub().returns({})
+      channelStub.publish = sinon.stub().returns(true)
+      channelStub.ack = sinon.stub()
+      channelStub.assertExchange = sinon.stub()
 
-      connectStub = {
-        on: sinon.stub(),
-        createChannel: sinon.stub().returns(channelStub),
-      }
+      connectStub = new Connection()
+      connectStub.createChannel = sinon.stub().returns(channelStub)
     })
 
     it('initiates', async () => {
@@ -205,6 +207,31 @@ describe('hermoth', () => {
 
       await hermoth.consume(ORIGINAL_MESSAGE)
       sinon.assert.calledWith(listenerStub, MESSAGE, ack)
+    })
+
+    it('tries to reconnect when connection with the host is lost', async () => {
+      setupHermoth()
+      await hermoth.init()
+
+      const handleConnectionClose = sinon.spy()
+      connectStub.on('close', handleConnectionClose)
+
+      const error = new Error('Connection closed: 320 CONNECTION_FORCED - broker forced connection closure')
+      connectStub.emit('close', error)
+
+      sinon.assert.calledOnce(handleConnectionClose)
+      sinon.assert.calledWith(handleConnectionClose, error)
+    })
+
+    it('tries to reconnect when connection with the channel is lost', async () => {
+      const handleChannelClose = sinon.spy()
+      channelStub.on('error', handleChannelClose)
+
+      const error = new Error('Connection closed: 320 CONNECTION_FORCED - broker forced connection closure')
+      channelStub.emit('error', error)
+
+      sinon.assert.calledOnce(handleChannelClose)
+      sinon.assert.calledWith(handleChannelClose, error)
     })
   })
 })
