@@ -227,7 +227,7 @@ describe('hermoth', () => {
       const handleChannelClose = sinon.spy()
       channelStub.on('error', handleChannelClose)
 
-      const error = new Error('Connection closed: 320 CONNECTION_FORCED - broker forced connection closure')
+      const error = new Error('Channel closed by server: 406 PRECONDITION_FAILED - unknown delivery tag 1')
       channelStub.emit('error', error)
 
       sinon.assert.calledOnce(handleChannelClose)
