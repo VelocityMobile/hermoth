@@ -31,7 +31,7 @@ describe('hermoth', () => {
       maxConnectionRetries: 1,
       durableExchange: false,
       exclusiveQueue: true,
-      queueBindingKey: '.',
+      queueBindingKeys: ['.'],
       noAck: true,
     }, overrideOptions)
     return new Hermoth(args)
@@ -67,7 +67,7 @@ describe('hermoth', () => {
         durableQueue: true,
         persistentMessages: true,
         exclusiveQueue: true,
-        queueBindingKey: '.',
+        queueBindingKeys: ['*.bletchley.*', '*.*.park', 'cambridge.#'],
         noAck: true,
       }
       const hermoth = hermothFactory(options)
@@ -82,7 +82,7 @@ describe('hermoth', () => {
       assert.equal(true, hermoth.durableQueue)
       assert.equal(true, hermoth.persistentMessages)
       assert.equal(true, hermoth.exclusiveQueue)
-      assert.equal('.', hermoth.queueBindingKey)
+      assert.deepEqual(['*.bletchley.*', '*.*.park', 'cambridge.#'], hermoth.queueBindingKeys)
       assert.equal(true, hermoth.noAck)
     })
   })
@@ -123,8 +123,10 @@ describe('hermoth', () => {
         hermoth.exchangeName, hermoth.exchangeType, { durable: hermoth.durableExchange })
       sinon.assert.calledWith(channelStub.assertQueue, hermoth.queueName,
         { autoDelete: true, exclusive: hermoth.exclusiveQueue, persistent: hermoth.durableQueue })
-      sinon.assert.calledWith(channelStub.bindQueue,
-        hermoth.queueName, hermoth.exchangeName, hermoth.queueBindingKey)
+      for (const bindingKey of hermoth.queueBindingKeys) { // eslint-disable-line no-restricted-syntax
+        sinon.assert.calledWith(channelStub.bindQueue,
+          hermoth.queueName, hermoth.exchangeName, bindingKey)
+      }
       sinon.assert.calledWith(channelStub.consume,
         hermoth.queueName, sinon.match.func, { noAck: hermoth.noAck })
     })
